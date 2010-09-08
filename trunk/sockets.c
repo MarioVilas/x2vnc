@@ -35,6 +35,8 @@ void PrintInHex(char *buf, int len);
 Bool errorMessageFromReadExact = True;
 Bool useSSHTunnel;
 char *useSSHGateway;
+char *sshUser;
+int sshPort = 22;
 
 /*
  * Read an exact number of bytes, and don't return until you've got them.
@@ -363,17 +365,35 @@ int tunnel(char *gatewayhost, char *remotehost, int remoteport)
   putenv(space);
   space+=strlen(space)+1;
   
-  sprintf(space,"GATEWAYHOST=%s",gatewayhost ? gatewayhost : remotehost);
+  sprintf(space,"REMOTEPORT=%d",remoteport);
   putenv(space);
   space+=strlen(space)+1;
   
-  sprintf(space,"REMOTEPORT=%d",remoteport);
+  if(gatewayhost)
+  {
+      if(sshUser)
+      {
+        sprintf(space,"GATEWAYHOST=%s@%s",sshUser,gatewayhost);
+      }
+      else
+      {
+        sprintf(space,"GATEWAYHOST=%s",gatewayhost);
+      }
+  }
+  else
+  {
+    sprintf(space,"GATEWAYHOST=%s",remotehost);
+  }
+  putenv(space);
+  space+=strlen(space)+1;
+
+  sprintf(space,"GATEWAYPORT=%d",sshPort);
   putenv(space);
   space+=strlen(space)+1;
 
   cmd=getenv("X2VNC_SSH_CMD");
   /* Using -X tells ssh to turn off the NAGLE algorithm, which is required for any form of speed */
-  if(!cmd) cmd="ssh -A -X -f -L \"$LOCALPORT:$REMOTEHOST:$REMOTEPORT\" \"$GATEWAYHOST\" 'ssh-add;sleep 60'";
+  if(!cmd) cmd="ssh -A -X -f -L \"$LOCALPORT:$REMOTEHOST:$REMOTEPORT\" \"$GATEWAYHOST\" -p $GATEWAYPORT 'ssh-add;sleep 60'";
 
   if(system(cmd) < 0)
   {
