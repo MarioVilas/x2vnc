@@ -1,0 +1,32 @@
+Summary: VNC dual-screen hack
+Name: x2vnc
+Version: @VERSION@
+Release: 1
+Copyright: GPL
+Group: X11/
+Source: http://fredrik.hubbe.net/x2vnc-@VERSION@.tar.gz
+URL: http://fredrik.hubbe.net/x2vnc.html
+AutoReqProv: no
+
+%description
+x2vnc will let you use two screens on two different computers as if they were
+connected to the same computer. The computer with the 'main' keboard must
+be running X-window, and the second computer should have a VNC server
+running which will update the contents on the actual screen.
+
+%prep
+%setup
+
+%build
+xmkmf
+make
+
+%install
+make install MANPATH=$RPM_BUILD_ROOT/usr/X11R6/man/ BINDIR=$RPM_BUILD_ROOT/usr/X11R6/man/
+
+%clean
+make clean
+
+%files
+/usr/X11R6/bin/x2vnc
+/usr/X11R6/man/man1/x2vnc.1x.html

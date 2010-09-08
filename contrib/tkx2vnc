@@ -1,0 +1,213 @@
+#!/usr/bin/expectk -f
+
+# Name: tkx2vnc
+# Author: David Noble
+# Version: 1.0a
+# Written: May 13, 2002
+# Modified: May 15, 2002
+
+proc prompt {} {
+    global prefs
+    global retry_opt
+     label .msg
+    pack .msg -side top
+
+    frame .f ; pack .f -side top
+    label .f.h -text Host:
+    entry .f.host -width 20 -relief sunken -textvariable prefs(hostname)
+    pack .f.h .f.host -side left
+    label .f.p -text Password:
+    entry .f.password -width 20 -relief sunken -show *
+    pack .f.p .f.password -side left
+         frame .rb; pack .rb -side top
+    radiobutton .rb.e -text "east" -variable prefs(side) -value "east"
+    radiobutton .rb.w -text "west" -variable prefs(side) -value "west"
+    radiobutton .rb.n -text "north" -variable prefs(side) -value "north"
+    radiobutton .rb.s -text "south" -variable prefs(side) -value "south"
+    label .rb.p -text "Screen Position:"
+    pack .rb.p .rb.e .rb.w .rb.n .rb.s -in .rb -side left
+
+    frame .op; pack .op -side top
+    checkbutton .op.rs -text "resurface" -variable prefs(resurface)
+    checkbutton .op.nw -text "no wheel mouse support" -variable prefs(nowheel)
+    label .op.o -text Options:
+    pack .op.o .op.rs .op.nw -in .op -side left
+
+    frame .mn; pack .mn -side top
+    tk_optionMenu .mn.menubutton prefs(retry) $retry_opt(retry) $retry_opt(prompt) $retry_opt(quit)
+    label .mn.t -text "When connection is lost:"
+    pack .mn.t  .mn.menubutton -in .mn -side left
+             frame .buttons -borderwidth 10
+    pack .buttons -side bottom -fill x
+
+    button .buttons.ok -text OK -command connect
+    button .buttons.quit -text Quit -command exit
+    pack .buttons.quit .buttons.ok -side right
+     bind . <Return> {.buttons.ok invoke}
+
+}
+
+proc parse_prefs {} {
+    global prefs
+    global retry_opt
+
+    set retry_opt(retry) "Retry every 10 seconds"
+    set retry_opt(prompt) "Display prompt"
+    set retry_opt(quit) "Quit"
+     set rc [catch {open ~/.tkx2vncrc r} file]
+     if {$rc==0} {
+    array set prefs [gets $file]
+    close $file
+        if {![string equal $prefs(retry) $retry_opt(retry)] &&
+            ![string equal $prefs(retry) $retry_opt(prompt)] &&
+            ![string equal $prefs(retry) $retry_opt(quit)] } {
+          set prefs(retry) $retry_opt(prompt)
+        }
+    } else {
+      set prefs(side) "east"
+      set prefs(nowheel) 0
+      set prefs(resurface) 1
+      set prefs(hostname) ""
+      set prefs(retry) $retry_opt(prompt)
+    }
+     return
+   }
+
+proc write_prefs {} {
+    global prefs
+    global retry_opt
+     set rc [catch {open ~/.tkx2vncrc w} file]
+     if {$rc==0} {
+    puts $file [array get prefs]
+    close $file
+    }
+     return
+}
+
+proc connect {} {
+    global prefs
+    global retry_opt
+
+    if {[string equal $prefs(hostname) ""]}  {
+      .msg configure -text "Please Enter Host and Password:"
+      return
+    }
+     set host $prefs(hostname)
+    if {![regexp {[a-z.A-Z0-9]+\:\d+} $host]} {
+      set host "$host:0"
+    }
+     write_prefs
+
+    set passwd [.f.password get]
+
+    if {[string equal $passwd ""]}  {
+      .msg configure -text "Please Enter Password:"
+      return
+    }
+             set options "-$prefs(side)"
+    if { $prefs(nowheel) } {
+      set options "$options -nowheel"
+    }
+    if { $prefs(resurface) } {
+      set options "$options -resurface"
+    }
+     wm withdraw .
+
+    set successful_once 0
+     set success 1
+    while { $success } {
+        eval spawn x2vnc "$options $host"
+
+        set success 0
+        set timeout 5
+        expect {
+        "Password:"
+                {
+                  exp_send "$passwd\r"
+                  set success 1
+                }
+            "*unable to connect to VNC server"
+                {
+              .msg configure -text "Error: Unable to connect to vnc server on $host."
+            }
+            "*to host address"
+                {
+              .msg configure -text "Error: Could not find host address for $host."
+            }
+            default
+                {
+              .msg configure -text "Error: No response from $host."
+            }
+    }                 if { $success } {
+            set success 0
+            set timeout 5
+            expect {
+            "*VNC authentication failed"
+                    {
+                  .msg configure -text "Error: Authentication Failed. Incorrect Password?"
+                      # no point continuing from here
+                      break
+                    }
+                "*Connected to VNC server"
+                    {
+                  set success 1
+                }
+                default
+                    {
+                  .msg configure -text "Unrecognized Connection Error!"
+                }
+        }
+        }
+             if { $success } {
+            set timeout -1
+        expect {
+            "*read failed"
+                    {
+                  # normal result of pc being turned off
+                      set successful_once 1
+                }
+                "*Connection reset by peer"
+                    {
+                  # normal result of network difficulty
+                      set successful_once 1
+                    }
+                default
+                    {
+                  .msg configure -text "Unrecognized x2vnc Error!"
+                      set success 0
+                }
+        }
+        }
+                   if { $successful_once } {
+            if {[string equal $prefs(retry) $retry_opt(quit)]} {
+                exit
+            } elseif {[string equal $prefs(retry) $retry_opt(retry)]} {
+                catch {close}
+                catch {exec "kill" [exp_pid]}
+                wait
+                exec sleep 10
+                set success 1
+            } elseif {[string equal $prefs(retry) $retry_opt(prompt)]} {
+                .msg configure -text "Connection lost to vnc server on $host."
+                .buttons.ok configure -text "RECONNECT"
+                set success 0
+            }
+        }
+    }
+     catch {close}
+    catch {exec "kill" [exp_pid]}
+    wait
+    wm deiconify .
+    return
+       }
+
+# comment the following line to have stdout printed
+# including all output of x2vnc
+log_user 0
+
+parse_prefs
+prompt
+
+
+
+

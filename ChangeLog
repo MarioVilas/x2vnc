@@ -1,0 +1,76 @@
+2003-11-11  Fredrik Hubinette  <hubbe@cytocin.hubbe.net>
+
+	* Changes from 1.5.1
+	* Added some patches from Grant McDorman to allow proper
+	  cut'n'paste between x2vnc and Konsole/gnome-terminal.
+	* Honor $DESTDIR to make packaging easier.
+        * Added a workaround to make cut'n'paste work better with
+	  old VNC servers.
+	* Since all new VNC servers already support wheel emulation
+	  themseleves, x2vnc doesn't translate wheel events to arrow
+	  up/down anymore unless -wheelhack is specified.
+	* Added -navhack which is similar to -wheelhack, except it
+	  translates button 6 & 7 to Alt+Left/Right.
+	* Added -debug to debug key events
+	* Allow -edgewidth 0 to turn off edge-flipping
+	
+2003-02-07  Fredrik Hubinette  <hubbe@adenin>
+
+	* Changes from version 1.4
+	* Now traps grabkey errors, no more X errors.
+	* Xinerama support, allows x2vnc to work
+	  sanely on multi-head X displays.
+	* If stdin is not a tty, read password with
+	  fgets() instead of getpass(). This allows
+	  scripts to feed in the password.
+	* New arguments -noblank and -lockdelay allows you
+	  to keep screen savers from activating while using
+	  your computers.
+
+2002-05-27  Fredrik Hubinette  <hubbe@cytocin.hubbe.net>
+
+	* Included tkx2vnc, written by David Noble
+	* x.c (CreateXWindow): move remote cursor to resting place
+	  immediately when connecting to confuse the user less.
+	  (Thanks to Patrick Cheng)
+
+2002-03-31  Fredrik Hubinette  <hubbe@cytocin.hubbe.net>
+
+	* changes from version 1.31
+	* Added hotkey functionality.
+	* Added Macintosh mode.
+	* Included a patch for -trimsel.
+	* Implemented -scrollines
+	* Fixed a glitch which made the pointer appear briefly
+	  at the wrong side of the screen.
+	* Implemented a grab timeout to allow xscreensaver to activate
+	  gracefully.
+	* Added -desktop option.
+	* AltGr should now work properly.
+
+2001-11-17  Fredrik Hubinette  <hubbe@cytocin.hubbe.net>
+
+	* changes from version 1.2
+	* Fixed cut'n'paste to work with XA_PRIMARY
+	* Reversed mouse wheel direction (-reversewheel will get
+	  old behavior)
+	* Added an autoconf script for easier compilation on 
+	  systems where xmkmf has not been configured properly.
+	* Fixed -edgewidth to affect mouse pointer returns as well,
+	  should fix some problems on Digital Unix.
+
+2000-02-04  Fredrik Hubinette  <hubbe@adenin.hubbe.net>
+
+	* changes from version 1.0:
+	* SHIFT-TAB should now work
+	* Should now work with xlock and other evil X programs.
+	* new option -edgewidth should make it work on
+	  Digital Unix X servers.
+	* When mouse leaves Win32 machine, it parks the mouse pointer
+	  on that machine in a place where you can hardly see it.
+	* Applied a patch from Grant McDorman that should make x2vnc
+	  work with multiple-screen X servers.
+	* Fixed a bug which made x2vnc not work with certain window
+	  managers. (Like enlightenment) Thanks to Brad Fitzpatrick for
+	  helping me with this one.
+	* "xmkmf ; make" should now work.
