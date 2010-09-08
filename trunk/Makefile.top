@@ -1,0 +1,18 @@
+VERSION=1.7.2
+SRCS = args.c listen.c rfbproto.c sockets.c x2vnc.c x.c vncauth.c d3des.c
+HFILES=d3des.h rfbproto.h vncauth.h x2vnc.h
+OBJS = args.o listen.o rfbproto.o sockets.o x2vnc.o x.o vncauth.o d3des.o
+INCLUDES = -I. -DVERSION=\"$(VERSION)\"
+XFILES=README COPYING ChangeLog \
+       $(SRCS) $(HFILES) \
+       x2vnc.man x2vnc.spec.in \
+       Imakefile Makefile.in Makefile.top Makefile.bottom \
+       configure configure.in \
+       install-sh \
+       contrib/tkx2vnc
+RPMDIR=/usr/src/RPM
+LDLIBS=-lX11 -lm
+
+all:: x2vnc
+
+install:: install.man

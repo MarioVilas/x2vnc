@@ -1,0 +1,76 @@
+
+                   x2vnc - A dual-screen hack
+          Written by Fredrik Hübinette <hubbe@hubbe.net>
+         Based on ideas from x2x and code from vncviewer.
+
+          Thanks to Grant McDorman and Brad Fitzpatrick
+            for helping me make this program better.
+
+
+This program merges the capabilities of x2x and vncviewer.
+It will allow a machine with an X display and a machine with
+a VNC server running on it's main screen to act as if they
+were two displays connected to one machine. When you move
+your mouse pointer off the screen in a direction of your
+choosing, the pointer will appear on the other screen instead.
+
+There are now two ways to compile x2vnc:
+
+  1) run './configure', then 'make'
+  2) edit Imakefile, run 'xmkmf', then 'make'
+
+After compiling, you should su to root and type 'make install'.
+
+The first way is recommended since it will automatically detect
+what X11 extensions you have available on your system. For x2vnc
+to function properly it is highly recommended that you have the
+development packages for the following X11 extensions installed:
+
+     Xinerama   MIT-Screensaver  RANDR and XFree86-DGA
+
+Depending on what distribution you use, you will need to install
+different packages:
+
+Ubuntu/hoary:
+  apt-get install x-dev libxinerama-dev libxss-dev
+  apt-get install libxrandr-dev libxxf86dga-dev 
+
+Debian/stable:
+  apt-get install x-dev xlibs-static-dev libxrandr-dev
+
+Debian/unstable:
+  apt-get install x11proto-core-dev 
+  apt-get install x11proto-xf86dga-dev x11proto-scrnsaver-dev 
+  apt-get install libxrandr-dev libxrandr-dev
+
+Fedora 5:
+  yum install xorg-x11-proto-devel
+
+Fedora 2-4:
+  yum install xorg-x11-devel
+
+
+
+The latest version of this program should be available from
+
+       http://Fredrik.Hubbe.net/x2vnc.html
+
+For more info about VNC: http://www.realvnc.com/
+For more info about x2x: http://ftp.digital.com/pub/Digital/SRC/x2x/
+
+
+This is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This software is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this software; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+USA.
+

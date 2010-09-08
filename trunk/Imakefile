@@ -1,0 +1,39 @@
+#include "Makefile.top"
+
+/* Please configure */
+#define have_mit_screensaver 1
+#define have_xinerama 0
+#define have_xidle 0
+/* Configuration done (hopefull) */
+
+#if have_mit_screensaver
+  /* If you have MIT-SCREEN-SAVER extention */
+  SD=-DHAVE_MIT_SCREENSAVER
+  SL=$(XSSLIB)
+ DSL=$(DEPXSSLIB)
+#endif
+
+#if have_xinerama
+  /* If you have Xinerama */
+ XID=-DHAVE_XINERAMA
+ XIL=$(XINERAMALIB)
+DXIL=$(DEPXINERAMALIB)
+#endif
+
+#if have_xidle
+  /* If you have Xidle (fill in IL and DIL yourself) */
+  ID=-DHAVE_XIDLE
+  IL=
+ DIL=
+#endif
+
+
+LOCAL_LIBRARIES = $(SL) $(IL) $(XLIB)
+DEPLIBS =  $(DSL) $(IDL) $(DEPXLIB)
+DEFINES = $(SD) $(ID)
+
+ComplexProgramTarget(x2vnc)
+
+DependTarget()
+
+#include "Makefile.bottom"

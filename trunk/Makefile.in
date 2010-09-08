@@ -1,0 +1,36 @@
+@SET_MAKE@
+@makefile_top@
+CFLAGS=$(INCLUDES) @CFLAGS@ @CPPFLAGS@ @DEFS@
+LDFLAGS=@LDFLAGS@ 
+LIBS=@LIBS@ $(LDLIBS)
+CC=@CC@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+BINDIR=@bindir@
+MANDIR=@mandir@
+INSTALL=@INSTALL@
+MKDIRHIER=mkdir -p 
+DESTDIR=
+
+x2vnc: $(OBJS)
+	$(CC) -o x2vnc $(LDFLAGS) $(OBJS) $(LIBS)
+
+install:: install.bin install.man
+
+install.bin:
+	test -d "$(DESTDIR)$(BINDIR)" || mkdir "$(DESTDIR)$(BINDIR)"
+	@INSTALL_PROGRAM@ x2vnc "$(DESTDIR)$(BINDIR)/x2vnc"
+
+install.man:
+	test -d "$(DESTDIR)$(MANDIR)" || mkdir "$(DESTDIR)$(MANDIR)"
+	test -d "$(DESTDIR)$(MANDIR)/man1" || mkdir "$(DESTDIR)$(MANDIR)/man1"
+	@INSTALL_DATA@ x2vnc.man "$(DESTDIR)$(MANDIR)/man1/x2vnc.1"
+
+clean:
+	rm -f x2vnc *.o core
+
+@makefile_bottom@
+
+
+
