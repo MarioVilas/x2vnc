@@ -252,6 +252,19 @@ void processArgs(int argc, char **argv)
       noblank = True;
     } else if (strcmp(argv[i],"-tunnel") == 0) {
       useSSHTunnel=True;
+    } else if (strcmp(argv[i],"-sshuser") == 0) {
+      useSSHTunnel=True;
+      if (++i >= argc) usage();
+      sshUser = argv[i];
+    } else if (strcmp(argv[i],"-sshport") == 0) {
+      useSSHTunnel=True;
+      if (++i >= argc) usage();
+      sshPort = atoi(argv[i]);
+      if(sshPort < 1 || sshPort > 65535)
+      {
+	fprintf(stderr,"x2vnc: -sshport must be between 1 and 65535\n");
+	exit(1);
+      }
     } else if (strcmp(argv[i],"-via") == 0) {
       if (++i >= argc) usage();
       useSSHGateway = argv[i];

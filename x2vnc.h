@@ -146,6 +146,8 @@ extern int StringToIPAddr(const char *str, unsigned int *addr);
 extern Bool SameMachine(int sock);
 extern Bool useSSHTunnel;
 extern char *useSSHGateway;
+extern char *sshUser;
+extern int sshPort;
 
 
 /* listen.c */
