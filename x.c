@@ -240,6 +240,9 @@ Bool CreateXWindow(void)
   if(restingy == -1)
   {
     restingy = si.framebufferHeight -2 - mac_mode;
+  }
+  if(restingx == -1)
+  {
     restingx = si.framebufferWidth -2 + mac_mode;
   }
 
