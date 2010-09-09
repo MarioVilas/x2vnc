@@ -296,7 +296,7 @@ void processArgs(int argc, char **argv)
           usage();
       } else if (port < 100) {
           port += SERVERPORT;
-      } else if (port > 65535) {
+      } else {
           usage();
       }
     }
