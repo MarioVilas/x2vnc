@@ -30,6 +30,8 @@
 #include <x2vnc.h>
 #include <X11/Xatom.h>
 #include <vncauth.h>
+#include <ctype.h>
+#include <time.h>
 
 static Bool HandleHextileEncoding8(int x, int y, int w, int h);
 static Bool HandleHextileEncoding16(int x, int y, int w, int h);

@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <x2vnc.h>
 #include <math.h>
+#include <time.h>
 #include <X11/X.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>

@@ -31,6 +31,7 @@
 #include <x2vnc.h>
 
 void PrintInHex(char *buf, int len);
+int tunnel(char *gatewayhost, char *remotehost, int remoteport);
 
 Bool errorMessageFromReadExact = True;
 Bool useSSHTunnel;
