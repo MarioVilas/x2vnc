@@ -40,13 +40,15 @@ AC_CHECK_HEADERS(X11/extensions/Xrandr.h, [
 #include <X11/Xutil.h>
 ])
 
+AC_ARG_WITH([xf86dga])
+AS_IF([test "x$with_xf86dga" != "xno"],
 AC_CHECK_HEADERS(X11/extensions/xf86dga.h, [
   AC_SEARCH_LIBS(XF86DGADirectVideo,Xext Xxf86dga,[AC_DEFINE(HAVE_XF86DGA)])
 ], [], [
 #include <X11/X.h>
 #include <X11/Xutil.h>
 ])
-
+)
 
 AC_SUBST_FILE(makefile_top)
 AC_SUBST_FILE(makefile_bottom)
