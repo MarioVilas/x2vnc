@@ -851,9 +851,9 @@ int coord_dist_from_edge(struct coord a)
 {
   int n,ret=a.x;
   if(a.y < ret) ret=a.y;
-  n=displayHeight - a.y;
+  n=y_offset + displayHeight - a.y;
   if(n < ret) ret=n;
-  n=displayWidth - a.x;
+  n=x_offset + displayWidth - a.x;
   if(n < ret) ret=n;
   return ret;
 }
