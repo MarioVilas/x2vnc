@@ -101,42 +101,66 @@ WriteExact(int sock, char *buf, int n)
  */
 
 int
-ConnectToTcpAddr(unsigned int host, int port)
+ConnectToTcpAddr(const char *hostname, int port)
 {
-  int sock;
-  struct sockaddr_in addr;
+  int sock = -1;
   int one = 1;
   
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
-  addr.sin_addr.s_addr = host;
-  
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_NUMERICSERV;
+
+  char portstr[3*sizeof(int)+1];
   if(useSSHTunnel)
   {
-    char *remote, *gateway;
+    const char *remote, *gateway;
     if(useSSHGateway)
     {
       gateway=useSSHGateway;
-      remote=inet_ntoa(addr.sin_addr);
+      remote=hostname;
     }else{
-      gateway=inet_ntoa(addr.sin_addr);
-      remote="127.0.0.1";
+      gateway=hostname;
+      remote="localhost";
     }
-    addr.sin_port=htons(tunnel(gateway, remote, port));
-    inet_aton("127.0.0.1",& addr.sin_addr);
+    sprintf(portstr, "%i", tunnel(gateway, remote, port));
+    hostname = 0; /* Request loopback address from getaddrinfo() */
+  } else {
+    sprintf(portstr, "%i", port);
   }
+
+  struct addrinfo *res;
+  int eai = getaddrinfo(hostname, portstr, &hints, &res);
+  if (eai) {
+      if (eai == EAI_SYSTEM) {
+	  fprintf(stderr,"%s",programName);
+	  perror(": ConnectToTcpAddr: getaddrinfo");
+      } else {
+	  fprintf(stderr, "%s: ConnectToTcpAddr: getaddrinfo: %s\n", programName, gai_strerror(eai));
+	  return -1;
+      }
+  }
+  struct addrinfo *ai;
+  for (ai = res; ai; ai = ai->ai_next) {
+    sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+    if (sock < 0) {
+      fprintf(stderr,"%s",programName);
+      perror(": ConnectToTcpAddr: socket");
+      continue;
+    }
   
-  sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+	fprintf(stderr,"%s",programName);
+	perror(": ConnectToTcpAddr: connect");
+	close(sock);
+	sock = -1;
+    } else {
+	break;
+    }
+  }
+  freeaddrinfo(res);
   if (sock < 0) {
-    fprintf(stderr,"%s",programName);
-    perror(": ConnectToTcpAddr: socket");
-    return -1;
-  }
-  
-  if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    fprintf(stderr,"%s",programName);
-    perror(": ConnectToTcpAddr: connect");
-    close(sock);
+    fprintf(stderr,"%s: Could not connect to any address\n", programName);
     return -1;
   }
   
@@ -159,41 +183,64 @@ ConnectToTcpAddr(unsigned int host, int port)
 int
 ListenAtTcpPort(int port)
 {
-    int sock;
-    struct sockaddr_in addr;
-    int one = 1;
+    int sock = -1;
+    int one = 1, zero = 0;
+    
+    struct sockaddr_storage addr;
+    socklen_t addrlen;
 
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = INADDR_ANY;
+    for (addr.ss_family = AF_INET6; sock < 0 && addr.ss_family;
+	 addr.ss_family = (addr.ss_family == AF_INET6 ? AF_INET : 0)) {
 
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
-	fprintf(stderr,"%s",programName);
-	perror(": ListenAtTcpPort: socket");
-	return -1;
-    }
+	sock = socket(addr.ss_family, SOCK_STREAM, 0);
+	if (sock < 0) {
+	    fprintf(stderr,"%s",programName);
+	    perror(": ListenAtTcpPort: socket");
+	    continue;
+	}
 
-    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-		   (const char *)&one, sizeof(one)) < 0) {
-	fprintf(stderr,"%s",programName);
-	perror(": ListenAtTcpPort: setsockopt");
-	close(sock);
-	return -1;
-    }
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+		       (const char *)&one, sizeof(one)) < 0) {
+	    fprintf(stderr,"%s",programName);
+	    perror(": ListenAtTcpPort: setsockopt");
+	    close(sock); sock = -1;
+	    continue;
+	}
 
-    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-	fprintf(stderr,"%s",programName);
-	perror(": ListenAtTcpPort: bind");
-	close(sock);
-	return -1;
-    }
+	if (addr.ss_family == AF_INET6) {
+	    struct sockaddr_in6 *addr6 = (struct sockaddr_in6*)&addr;
+	    addr6->sin6_port = htons(port);
+	    memcpy(addr6->sin6_addr.s6_addr, &in6addr_any, sizeof(in6addr_any));
+	    addrlen = sizeof(struct sockaddr_in6);
+	    if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY,
+			   &zero, sizeof(zero)) < 0) {
+		fprintf(stderr,"%s",programName);
+		perror(": Warning: ListenAtTcpPort: setsockopt");
+	    }
+	} else {
+	    struct sockaddr_in *addr4 = (struct sockaddr_in *)&addr;
+	    addr4->sin_port = htons(port);
+	    addr4->sin_addr.s_addr = INADDR_ANY;
+	    addrlen = sizeof(struct sockaddr_in);
+	}
 
-    if (listen(sock, 5) < 0) {
-	fprintf(stderr,"%s",programName);
-	perror(": ListenAtTcpPort: listen");
-	close(sock);
-	return -1;
+	if (bind(sock, (struct sockaddr *)&addr, addrlen) < 0
+	    && (addr.ss_family != AF_INET6
+		|| setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY,
+			      &one, sizeof(one)) < 0
+		|| bind(sock, (struct sockaddr *)&addr, addrlen) < 0)) {
+	    fprintf(stderr,"%s",programName);
+	    perror(": ListenAtTcpPort: bind");
+	    close(sock); sock = -1;
+	    continue;
+	}
+
+	if (listen(sock, 5) < 0) {
+	    fprintf(stderr,"%s",programName);
+	    perror(": ListenAtTcpPort: listen");
+	    close(sock); sock = -1;
+	    continue;
+	}
     }
 
     return sock;
@@ -210,22 +257,39 @@ int getFreePort(void)
   for(x=0;x<100;x++)
   {
     int port = 5500 + last % 100;
+    char portstr[3*sizeof(int)+1];
+    sprintf(portstr, "%i", port);
     last+=4711;
+
+    struct addrinfo *res = 0;
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_socktype = SOCK_STREAM;
   
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = INADDR_ANY;
-    
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0 ||
-        setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-                   (const char *)&one, sizeof(one)) < 0 ||
-        bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) 
-    {
-      close(sock);
-    }else{
-      close(sock);
-      return port;
+    int eai = getaddrinfo(0, portstr, &hints, &res);
+    if (eai) {
+	fprintf(stderr, "%s: getaddrinfo() failed when finding a free port: %s\n",
+		programName, gai_strerror(eai));
+	return -1;
+    }
+    for (struct addrinfo *ai = res; ai; ai = ai->ai_next) {
+	sock = socket(ai->ai_family, SOCK_STREAM, 0);
+	if (sock < 0 ||
+	    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+		       &one, sizeof(one)) < 0 ||
+	    (ai->ai_family == AF_INET6 && setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY,
+						     &one, sizeof(one)) < 0) ||
+	    bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+	    close(sock);
+	    sock = -1;
+	    freeaddrinfo(res);
+	    break;
+	} else {
+	    close(sock);
+	}
+    }
+    if (sock > 0) {
+	return port;
     }
   }
   return -1;
@@ -240,7 +304,7 @@ int
 AcceptTcpConnection(int listenSock)
 {
     int sock;
-    struct sockaddr_in addr;
+    struct sockaddr_storage addr;
     int addrlen = sizeof(addr);
     int one = 1;
 
