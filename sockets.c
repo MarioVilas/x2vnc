@@ -52,7 +52,7 @@ ReadExact(int sock, char *buf, int n)
 	j = read(sock, buf + i, (n - i));
 	if (j <= 0) {
 	    if (j < 0) {
-		fprintf(stderr,programName);
+		fprintf(stderr,"%s",programName);
 		perror(": read");
 	    } else {
 		if (errorMessageFromReadExact) {
@@ -83,7 +83,7 @@ WriteExact(int sock, char *buf, int n)
 	j = write(sock, buf + i, (n - i));
 	if (j <= 0) {
 	    if (j < 0) {
-		fprintf(stderr,programName);
+		fprintf(stderr,"%s",programName);
 		perror(": write");
 	    } else {
 		fprintf(stderr,"%s: write failed\n",programName);
@@ -128,20 +128,20 @@ ConnectToTcpAddr(unsigned int host, int port)
   
   sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock < 0) {
-    fprintf(stderr,programName);
+    fprintf(stderr,"%s",programName);
     perror(": ConnectToTcpAddr: socket");
     return -1;
   }
   
   if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    fprintf(stderr,programName);
+    fprintf(stderr,"%s",programName);
     perror(": ConnectToTcpAddr: connect");
     close(sock);
     return -1;
   }
   
   if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof(one)) < 0) {
-    fprintf(stderr,programName);
+    fprintf(stderr,"%s",programName);
     perror(": ConnectToTcpAddr: setsockopt");
     close(sock);
     return -1;
@@ -169,28 +169,28 @@ ListenAtTcpPort(int port)
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
-	fprintf(stderr,programName);
+	fprintf(stderr,"%s",programName);
 	perror(": ListenAtTcpPort: socket");
 	return -1;
     }
 
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 		   (const char *)&one, sizeof(one)) < 0) {
-	fprintf(stderr,programName);
+	fprintf(stderr,"%s",programName);
 	perror(": ListenAtTcpPort: setsockopt");
 	close(sock);
 	return -1;
     }
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-	fprintf(stderr,programName);
+	fprintf(stderr,"%s",programName);
 	perror(": ListenAtTcpPort: bind");
 	close(sock);
 	return -1;
     }
 
     if (listen(sock, 5) < 0) {
-	fprintf(stderr,programName);
+	fprintf(stderr,"%s",programName);
 	perror(": ListenAtTcpPort: listen");
 	close(sock);
 	return -1;
@@ -246,14 +246,14 @@ AcceptTcpConnection(int listenSock)
 
     sock = accept(listenSock, (struct sockaddr *) &addr, &addrlen);
     if (sock < 0) {
-	fprintf(stderr,programName);
+	fprintf(stderr,"%s",programName);
 	perror(": AcceptTcpConnection: accept");
 	return -1;
     }
 
     if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
 		   (char *)&one, sizeof(one)) < 0) {
-	fprintf(stderr,programName);
+	fprintf(stderr,"%s",programName);
 	perror(": AcceptTcpConnection: setsockopt");
 	close(sock);
 	return -1;
