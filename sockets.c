@@ -273,7 +273,8 @@ int getFreePort(void)
 		programName, gai_strerror(eai));
 	return -1;
     }
-    for (struct addrinfo *ai = res; ai; ai = ai->ai_next) {
+    struct addrinfo *ai;
+    for (ai = res; ai; ai = ai->ai_next) {
 	sock = socket(ai->ai_family, SOCK_STREAM, 0);
 	if (sock < 0 ||
 	    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
