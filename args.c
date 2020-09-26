@@ -191,20 +191,10 @@ void processArgs(int argc, char **argv)
           extern int restingx;
           if (++i >= argc) usage();
           restingx = atoi(argv[i]);
-          if(restingx != 0 && restingx != -1)
-          {
-            fprintf(stderr,"x2vnc: -restingx can only be 0 or -1\n");
-            exit(1);
-          }
         } else if (strcmp(argv[i],"-restingy") == 0) {
           extern int restingy;
           if (++i >= argc) usage();
           restingy = atoi(argv[i]);
-          if(restingy != 0 && restingy != -1)
-          {
-            fprintf(stderr,"x2vnc: -restingy can only be 0 or -1\n");
-            exit(1);
-          }
         } else if (strcmp(argv[i],"-desktop") == 0) {
           extern int requested_desktop;
           if (++i >= argc) usage();

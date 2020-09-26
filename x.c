@@ -238,13 +238,13 @@ Bool CreateXWindow(void)
   saved_remote_xpos = displayWidth / 2;
   saved_remote_ypos = displayHeight / 2;
   
-  if(restingy == -1)
+  if(restingy < 0)
   {
-    restingy = si.framebufferHeight -2 - mac_mode;
+    restingy += 1 + si.framebufferHeight -2 - mac_mode;
   }
-  if(restingx == -1)
+  if(restingx < 0)
   {
-    restingx = si.framebufferWidth -2 + mac_mode;
+    restingx += 1 + si.framebufferWidth -2 + mac_mode;
   }
 
 #ifdef HAVE_XINERAMA
