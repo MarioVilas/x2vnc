@@ -282,4 +282,4 @@ done
 \fR
 
 .SH AUTHOR
-Fredrik Hübinette, hubbe@hubbe.net
+Fredrik HÃ¼binette, hubbe@hubbe.net
