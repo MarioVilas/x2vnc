@@ -30,6 +30,8 @@
 #include <x2vnc.h>
 #include <X11/Xatom.h>
 #include <vncauth.h>
+#include <ctype.h>
+#include <time.h>
 
 static Bool HandleHextileEncoding8(int x, int y, int w, int h);
 static Bool HandleHextileEncoding16(int x, int y, int w, int h);
@@ -60,15 +62,8 @@ static char buffer[BUFFER_SIZE];
 Bool
 ConnectToRFBServer(const char *hostname, int port)
 {
-    unsigned int host;
 
-    if (!StringToIPAddr(hostname, &host)) {
-	fprintf(stderr,"%s: couldn't convert '%s' to host address\n",
-		programName,hostname);
-	return False;
-    }
-
-    rfbsock = ConnectToTcpAddr(host, port);
+    rfbsock = ConnectToTcpAddr(hostname, port);
 
     if (rfbsock < 0) {
 	fprintf(stderr,"%s: unable to connect to VNC server\n",

@@ -287,7 +287,8 @@ void processArgs(int argc, char **argv)
       argumentSpecified = True;
       
       port = 0;
-      if (sscanf(argv[i], "%[^:]:%d", hostname, &port) != 2) {
+      if (sscanf(argv[i], "[%255[0-9a-f:]]:%d", hostname, &port) != 2
+        && sscanf(argv[i], "%255[^:]:%d", hostname, &port) != 2) {
         strncpy(hostname, argv[i], sizeof(hostname));
         port = 0;
       }

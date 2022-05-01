@@ -140,7 +140,7 @@ extern Bool ReadExact(int sock, char *buf, int n);
 extern Bool WriteExact(int sock, char *buf, int n);
 extern int ListenAtTcpPort(int port);
 extern int getFreePort();
-extern int ConnectToTcpAddr(unsigned int host, int port);
+extern int ConnectToTcpAddr(const char *host, int port);
 extern int AcceptTcpConnection(int listenSock);
 extern int StringToIPAddr(const char *str, unsigned int *addr);
 extern Bool SameMachine(int sock);
